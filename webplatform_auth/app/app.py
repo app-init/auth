@@ -21,9 +21,9 @@ base_path = os.path.abspath(os.path.join(controller_path))
 if base_path not in sys.path:
    sys.path.append(base_path)
 
-from .views import saml
-from .middleware import token, json
-from .views.lib.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
+from views import saml
+from middleware import token, json
+from views.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
 
 from webplatform_cli.lib.config import Settings
 from webplatform_cli.lib.db import Manager

@@ -8,7 +8,7 @@ from onelogin.saml2.constants import OneLogin_Saml2_Constants
 
 import json, os, sys
 
-from views.lib.responses import *
+from views.responses import *
 
 from webplatform_cli.lib.config import Settings
 from webplatform_cli.lib.db import Manager

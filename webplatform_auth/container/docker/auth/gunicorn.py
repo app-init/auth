@@ -1,6 +1,6 @@
 import os
 
-bind = '0.0.0.0:8000'
+bind = '0.0.0.0:8001'
 backlog = 2048
 
 workers = 1
@@ -24,5 +24,7 @@ capture_output = True
 proc_name = None
 
 controller_path = os.path.dirname(os.path.realpath(__file__))
-base_path = os.path.abspath(os.path.join(controller_path))
+base_path = os.path.abspath("service")
 pythonpath = base_path
+
+print(controller_path, base_path)
