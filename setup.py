@@ -19,4 +19,10 @@ setup(name = "webplatform-auth",
        "License :: OSI Approved :: MIT License",
        "Operating System :: OS Independent",
    ],
+   # entry_points={
+   #     "console_scripts": ["webplatform-auth=webplatform_auth/cli.sh"]
+   # },
+   scripts = [
+      "webplatform_auth/webplatform-auth"
+   ]
 )

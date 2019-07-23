@@ -1,1 +1,3 @@
 include README.md
+include webplatform_auth/container/data/README.md
+recursive-include webplatform_auth/container *

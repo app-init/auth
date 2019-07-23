@@ -13,12 +13,7 @@ import json
 import os
 import traceback
 
-# sys.stdout = open("/home/cee-tools/logs/debug.log", "a+")
-
 from werkzeug.contrib.fixers import ProxyFix
-
-# sys.path.append("/home/cee-tools/api/")
-# sys.path.append("/home/cee-tools/apps/")
 
 controller_path = os.path.dirname(os.path.realpath(__file__))
 base_path = os.path.abspath(os.path.join(controller_path))
@@ -26,9 +21,9 @@ base_path = os.path.abspath(os.path.join(controller_path))
 if base_path not in sys.path:
    sys.path.append(base_path)
 
-from views import saml
-from middleware import token, json
-from views.lib.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
+from .views import saml
+from .middleware import token, json
+from .views.lib.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
 
 from webplatform_cli.lib.config import Settings
 from webplatform_cli.lib.db import Manager
@@ -36,11 +31,8 @@ from webplatform_cli.lib.db import Manager
 manager = Manager()
 settings = Settings(path=base_path, verify=False)
 
-modules = Modules(settings, manager)
-# manager = modules.manager
-
 app = Flask(__name__)
-# app.debug = True
+
 app.wsgi_app = ProxyFix(app.wsgi_app)
 app.use_x_sendfile = True
 
