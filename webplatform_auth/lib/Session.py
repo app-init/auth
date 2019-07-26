@@ -1,3 +1,4 @@
+from webplatform_cli.lib.config import Settings
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 import binascii, os
@@ -5,7 +6,8 @@ import binascii, os
 class Session(object):
    def __init__(self, db):
       self.db = db
-      self.apps = self.list_applications()
+      self.settings = Settings(path="/home/container/webplatform_cli", verify=False)
+      self.apps = self.settings.list_applications()
 
    def __parse_cursor(self, obj):
       class Object(object):
@@ -65,7 +67,7 @@ class Session(object):
       cursor = self.db.permissions.find({"uid": uid})
 
       if cursor == None:
-         cursor = self.__set_default_permissions(self, uid)
+         cursor = self.__set_default_user_permissions(uid)
 
       output = {}
       for i in cursor:
@@ -93,17 +95,17 @@ class Session(object):
       return documents
 
    # really don't need this method right now but it might come in handy at some point
-   def update(self, uid, ip):
-      now = datetime.now()
+   # def update(self, uid, ip):
+   #    now = datetime.now()
 
-      update = {
-         "expires": now + timedelta(hours=24),
-         "token": self.token(),
-      }
+   #    update = {
+   #       "expires": now + timedelta(hours=24),
+   #       "token": self.token(),
+   #    }
 
-      self.db.sessions.update({"uid": uid, "ip": ip}, {"$set": update})
+   #    self.db.sessions.update({"uid": uid, "ip": ip}, {"$set": update})
 
-      return self.get(uid=uid, ip=ip)
+   #    return self.get(uid=uid, ip=ip)
 
    def validate(self, uid, token):
       user = self.db.users.find_one({"uid": uid})

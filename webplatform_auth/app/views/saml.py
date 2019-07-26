@@ -20,7 +20,7 @@ if base_path not in sys.path:
    sys.path.append(base_path)
 
 manager = Manager()
-settings = Settings(path=base_path, verify=False)
+settings = Settings(path="/home/container/webplatform_cli", verify=False)
 
 # from lib.utils.config import Settings
 # from lib.utils.db import Manager
@@ -42,12 +42,8 @@ def get_certs(settings):
       "x509cert": "",
       "privateKey": ""
    }
-   instance = settings.get_instance()
 
-   if instance != "prod":
-      return output
-
-   certs_path = settings.get_config("flask")['saml-certs']
+   certs_path = "/home/container/config/saml/"
    certs_files = [
       "%s/sp.crt" % certs_path,
       "%s/sp.key" % certs_path,
@@ -71,7 +67,7 @@ def get_certs(settings):
 
 def setup_auth(request):
    settings = Settings()
-   saml_config_file = open(settings.get_config("flask")['saml-settings'] + "/settings.json")
+   saml_config_file = open("/home/container/config/saml/settings.json")
    saml_config = json.load(saml_config_file)
    saml_config_file.close()
 
@@ -100,8 +96,9 @@ def setup_auth(request):
 
    saml_config['sp']['assertionConsumerService']['url'] = url
 
-   for key, value in get_certs(settings).items():
-      saml_config['sp'][key] = value
+   if "wantAssertionsSigned" in saml_config['security'] and saml_config['security']['wantAssertionsSigned']:
+      for key, value in get_certs(settings).items():
+         saml_config['sp'][key] = value
 
    req = prepare_saml_request(request)
    auth = OneLogin_Saml2_Auth(req, saml_config)
@@ -168,7 +165,7 @@ def get(request):
       base = (protocol, host, port)
       q = request.args.get('q', '%s://%s:%s/' % base)
 
-      return_to = "%s://%s:%s/callback/" % base + "?q=%s" % (q)
+      return_to = "%s://%s:%s/auth/" % base + "?q=%s" % (q)
 
       auth = setup_auth(request)
       response = auth.login(return_to=return_to)
@@ -179,7 +176,7 @@ def get(request):
       base = (protocol, host)
       q = request.args.get('q', '%s://%s/' % base)
 
-      return_to = "%s://%s/callback/" % base + "?q=%s" % (q)
+      return_to = "%s://%s/auth/" % base + "?q=%s" % (q)
 
       auth = setup_auth(request)
       response = auth.login(return_to=return_to)

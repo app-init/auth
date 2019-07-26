@@ -7,7 +7,7 @@ def call(*args, **kwargs):
 
    if "edit" in kwargs:
       output = {
-         "permissions": _get_all_permissions(),
+         "permissions": __get_all_permissions(),
          "raw": {}
       }
 

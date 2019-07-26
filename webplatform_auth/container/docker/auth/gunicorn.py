@@ -26,5 +26,3 @@ proc_name = None
 controller_path = os.path.dirname(os.path.realpath(__file__))
 base_path = os.path.abspath("service")
 pythonpath = base_path
-
-print(controller_path, base_path)

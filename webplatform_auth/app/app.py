@@ -20,16 +20,17 @@ base_path = os.path.abspath(os.path.join(controller_path))
 
 if base_path not in sys.path:
    sys.path.append(base_path)
+   sys.path.append("/home/container/webplatform_cli")
 
 from views import saml
-from middleware import token, json
+from middleware import token
 from views.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
 
 from webplatform_cli.lib.config import Settings
 from webplatform_cli.lib.db import Manager
 
 manager = Manager()
-settings = Settings(path=base_path, verify=False)
+settings = Settings(path="/home/container/webplatform_cli", verify=False)
 
 app = Flask(__name__)
 
@@ -48,7 +49,7 @@ def token_middleware():
    g.settings = settings
    g.session = session
 
-@app.route("/callback/", methods=['POST', 'GET'])
+@app.route("/auth", methods=['POST', 'GET'])
 def saml_auth():
    if request.method == 'GET':
       return saml.get(request)

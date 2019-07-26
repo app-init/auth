@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name = "webplatform-auth",
-   version = "1.0.0",
+   version = "1.0.1",
    description = "Authentication for webplatform",
    author = "Matthew Owens",
    author_email = "mowens@redhat.com",
@@ -9,7 +9,8 @@ setup(name = "webplatform-auth",
    packages = find_packages(),
    include_package_data = True,
    install_requires = [
-      'webplatform-cli',
+      "webplatform-cli",
+      "webplatform-backend",
    ],
    python_requires='>=3',
    license='MIT',
@@ -19,9 +20,6 @@ setup(name = "webplatform-auth",
        "License :: OSI Approved :: MIT License",
        "Operating System :: OS Independent",
    ],
-   # entry_points={
-   #     "console_scripts": ["webplatform-auth=webplatform_auth/cli.sh"]
-   # },
    scripts = [
       "webplatform_auth/webplatform-auth"
    ]

@@ -1,10 +1,10 @@
 from webplatform_cli.lib.db import dbManager
-from lib.utils.sessions import Session
+from webplatform_auth.lib.Session import Session
 
 class BaseUser:
    def __init__(self, uid):
       self.manager = dbManager()
-      self.sessions = Sessions(self.manager.db("webplatform"))
+      self.sessions = Session(self.manager.db("webplatform"))
 
    def set_permissions(self, permissions):
       self.permissions = permissions
@@ -26,3 +26,9 @@ class BaseUser:
 
    def validate_session(self, *args):
       return self.sessions.validate(*args)
+
+   def get_user(self):
+      pass
+
+   def set_user(self):
+      pass
