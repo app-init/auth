@@ -15,22 +15,42 @@ import traceback
 
 from werkzeug.contrib.fixers import ProxyFix
 
+container_path = "/home/container/webplatform_cli"
 controller_path = os.path.dirname(os.path.realpath(__file__))
 base_path = os.path.abspath(os.path.join(controller_path))
+settings_path = base_path
+
+if os.path.isdir(container_path):
+   if container_path not in sys.path:
+      sys.path.append(container_path)
+   
+   settings_path = container_path
+else:
+   settings_path = os.path.abspath(os.path.join(controller_path, '../container/'))
 
 if base_path not in sys.path:
    sys.path.append(base_path)
-   sys.path.append("/home/container/webplatform_cli")
 
-from views import saml
+if controller_path not in sys.path:
+   sys.path.append(base_path)
+
+from views.saml import Auth
 from middleware import token
-from views.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
+# from views.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
 
 from webplatform_cli.lib.config import Settings
 from webplatform_cli.lib.db import Manager
 
+from webplatform_backend.lib.responses import *
+# print(dir(webplatform_backend.responses))
+# from webplatform_backend.responses import *
+# from webplatform_backend import fuck
+# print(fuck)
+
+settings = Settings(path=settings_path, verify=False)
 manager = Manager()
-settings = Settings(path="/home/container/webplatform_cli", verify=False)
+
+auth = Auth(manager, settings)
 
 app = Flask(__name__)
 
@@ -52,9 +72,9 @@ def token_middleware():
 @app.route("/auth", methods=['POST', 'GET'])
 def saml_auth():
    if request.method == 'GET':
-      return saml.get(request)
+      return auth.get(request)
    else:
-      return saml.post(request)
+      return auth.post(request)
 
 @app.route("/metadata")
 def metadata():
