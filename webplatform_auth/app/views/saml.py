@@ -1,4 +1,4 @@
-from flask import make_response, redirect, g
+from flask import make_response, redirect
 from urllib.parse import urlparse
 
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
@@ -6,14 +6,23 @@ from onelogin.saml2.settings import OneLogin_Saml2_Settings
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
 from onelogin.saml2.constants import OneLogin_Saml2_Constants
 
+from webplatform_backend.lib.responses import HttpResponseUnauthorized
+from webplatform_auth.lib.session import SessionManager
+# from webplatform_auth.lib import User
+
 import json, os, sys
 
 class Auth(object):
-   def __init__(self, manager, settings):
+   def __init__(self, manager, settings, session_mgr):
       self.manager = manager
       self.settings = settings
+      self.session_mgr = session_mgr
 
-   def prepare_saml_request(request):
+      base_path = settings.get_path()
+      self.saml_config_file = base_path + "/docker/auth/saml/settings.json"
+      self.saml_certs_path = base_path + "/docker/auth/saml"
+
+   def prepare_saml_request(self, request):
       return {
          'http_host': request.host,
          'script_name': request.path,
@@ -22,16 +31,15 @@ class Auth(object):
          'post_data': request.form.copy()
       }
 
-   def get_certs(settings):
+   def get_certs(self, settings):
       output = {
          "x509cert": "",
          "privateKey": ""
       }
 
-      certs_path = "/home/container/config/saml/"
       certs_files = [
-         "%s/sp.crt" % certs_path,
-         "%s/sp.key" % certs_path,
+         "%s/sp.crt" % self.saml_certs_path,
+         "%s/sp.key" % self.saml_certs_path,
       ]
 
       for path in certs_files:
@@ -51,9 +59,7 @@ class Auth(object):
       return output
 
    def setup_auth(self, request):
-      saml_config_file = open("/home/container/config/saml/settings.json")
-      saml_config = json.load(saml_config_file)
-      saml_config_file.close()
+      saml_config = json.load(open(self.saml_config_file))
 
       protocol = request.headers['X-Forwarded-Proto']
       port = request.headers['X-Nginx-Port']
@@ -67,22 +73,22 @@ class Auth(object):
 
       if port in host:
          base = (protocol, host)
-         url = '%s://%s/callback/' % base
+         url = '%s://%s/auth/' % base
       else:
          if port == "443":
             base = (protocol, host)
-            url = '%s://%s/callback/' % base
+            url = '%s://%s/auth/' % base
          else:
             base = (protocol, host, port)
-            url = '%s://%s:%s/callback/' % base
+            url = '%s://%s:%s/auth/' % base
 
-      saml_config['sp']['assertionConsumerService']['url'] = url
+      # saml_config['sp']['assertionConsumerService']['url'] = url
 
       if "wantAssertionsSigned" in saml_config['security'] and saml_config['security']['wantAssertionsSigned']:
-         for key, value in get_certs(self.settings).items():
+         for key, value in self.get_certs(self.settings).items():
             saml_config['sp'][key] = value
 
-      req = prepare_saml_request(request)
+      req = self.prepare_saml_request(request)
       auth = OneLogin_Saml2_Auth(req, saml_config)
 
       saml_settings = auth.get_settings()
@@ -123,17 +129,17 @@ class Auth(object):
          else:
             uid = cookies['login']
 
-         data = {
-            "uid": uid,
-            "is_auth": True,
-            "redirect": False,
-         }
+         # data = {
+         #    "uid": uid,
+         #    "is_auth": True,
+         #    "redirect": False,
+         # }
 
-         uid = data['uid']
-         data['user'] = self.manager.get_user(uid)
-         ip = request.remote_addr
+         # uid = data['uid']
+         # data['user'] = self.manager.get_user(uid)
+         # ip = request.remote_addr
 
-         session = self.manager.get_session(ip=ip, uid=uid)
+         # session = self.manager.get_session(ip=ip, uid=uid)
 
          return response
 
@@ -163,23 +169,19 @@ class Auth(object):
 
          return redirect(response)
 
-   def metadata(self, request):
-      auth = self.setup_auth(request)
-
-      auth_settings = auth.get_settings()
-      metadata = auth_settings.get_sp_metadata()
-
-      errors = auth_settings.validate_metadata(metadata)
-
-      if len(errors) == 0:
-         resp = make_response(metadata, 200)
-         resp.headers['Content-Type'] = 'text/xml'
-      else:
-         resp = make_response(', '.join(errors), 500)
-
-      return resp
-
    def post(self, request):
+      protocol = request.headers['X-Forwarded-Proto']
+      host = request.headers['HOST'].split(":")[0]
+      port = request.headers['X-Nginx-Port']
+      ip = request.remote_addr
+      
+      if port != 443 or port != 80:
+         base = (protocol, host, port)
+         return_to = '%s://%s:%s/' % base
+      else:
+         base = (protocol, host)
+         return_to = '%s://%s/' % base
+      
       auth = self.setup_auth(request)
       auth.process_response()
 
@@ -198,18 +200,47 @@ class Auth(object):
 
       if is_auth:
          uid = data['uid']
-         data['user'] = self.manager.saml_auth(uid)
-         ip = request.remote_addr
+         q = request.args.get('q', return_to)
 
-         session = self.manager.get_session(ip=ip, uid=uid)
-
-         return_to = "/"
-         if "RelayState" in request.form:
-            return_to = request.form['RelayState']
-
-         response = redirect(return_to)
-         response.set_cookie("login", uid, max_age=86400)
+         session = self.session_mgr.find(uid=uid, ip=ip)
          
-         return response
+         if not session:
+            self.session_mgr.create(uid=uid, ip=ip)
+
+         if q:
+            response = redirect(return_to)
+            response.set_cookie("login", uid, max_age=86400)
+            
+            return response
+         else:
+            # data['user'] = self.manager.saml_auth(uid)
+            # ip = request.remote_addr
+
+            # session = self.manager.get_session(ip=ip, uid=uid)
+
+            return_to = "/"
+            if "RelayState" in request.form:
+               return_to = request.form['RelayState']
+
+            response = redirect(return_to, code=307)
+            response.set_cookie("login", uid, max_age=86400)
+            
+            return response
       else:
-         return HttpResponseUnauthorized(simplejson.dumps({"message": "Error authenticated contact application admin."}))
+         return HttpResponseUnauthorized(json.dumps({"message": "Error authenticated contact application admin."}))
+
+   def metadata(self, request):
+      auth = self.setup_auth(request)
+
+      auth_settings = auth.get_settings()
+      metadata = auth_settings.get_sp_metadata()
+
+      errors = auth_settings.validate_metadata(metadata)
+
+      if len(errors) == 0:
+         resp = make_response(metadata, 200)
+         resp.headers['Content-Type'] = 'text/xml'
+      else:
+         resp = make_response(', '.join(errors), 500)
+
+      return resp

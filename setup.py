@@ -31,4 +31,5 @@ setup(name = "webplatform-auth",
    entry_points={
        "console_scripts": ["webplatform-auth=webplatform_auth.cli:main"]
    },
+   zip_safe = False
 )

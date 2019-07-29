@@ -1,19 +1,8 @@
-#!/bin/python3.5
-
-import sys
+#!/bin/python3
 
 # preventing __pycache__ from being created
+import os, sys, json
 sys.dont_write_bytecode = True
-
-from flask import Flask, redirect, jsonify, make_response, send_file, request, g
-from querystring_parser import parser
-import urllib
-
-import json
-import os
-import traceback
-
-from werkzeug.contrib.fixers import ProxyFix
 
 container_path = "/home/container/webplatform_cli"
 controller_path = os.path.dirname(os.path.realpath(__file__))
@@ -31,43 +20,39 @@ else:
 if base_path not in sys.path:
    sys.path.append(base_path)
 
+from flask import Flask, redirect, make_response, send_file, request
+
 if controller_path not in sys.path:
    sys.path.append(base_path)
 
 from views.saml import Auth
-from middleware import token
-# from views.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
+from webplatform_auth.middleware import token
+from webplatform_auth.lib import SessionManager
 
 from webplatform_cli.lib.config import Settings
 from webplatform_cli.lib.db import Manager
 
-from webplatform_backend.lib.responses import *
-# print(dir(webplatform_backend.responses))
-# from webplatform_backend.responses import *
-# from webplatform_backend import fuck
-# print(fuck)
+from webplatform_backend.lib.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
 
-settings = Settings(path=settings_path, verify=False)
 manager = Manager()
+settings = Settings(path=settings_path, verify=False)
+session_mgr = SessionManager(manager)
 
-auth = Auth(manager, settings)
+auth = Auth(manager, settings, session_mgr)
 
 app = Flask(__name__)
 
-app.wsgi_app = ProxyFix(app.wsgi_app)
-app.use_x_sendfile = True
+app.url_map.strict_slashes = False
 
 @app.before_request
-def token_middleware():
-   manager.set_hostname(request.host)
+def token_before():
+   token.process_request(session_mgr, request=request)
 
-   session = token.process_request(request, manager)
+# @app.after_request
+# def token_after(response):
+#    token.process_request(session_mgr, request=request, response=response)
 
-   if session != None:
-      manager.set_user_uid(session.uid)
-
-   g.settings = settings
-   g.session = session
+#    return response
 
 @app.route("/auth", methods=['POST', 'GET'])
 def saml_auth():
@@ -76,37 +61,37 @@ def saml_auth():
    else:
       return auth.post(request)
 
-@app.route("/metadata")
-def metadata():
-   protocol = request.headers['X-Forwarded-Proto']
-   port = request.headers['X-Nginx-Port']
-   host = request.headers['Host'].split(":")[0]
+# @app.route("/metadata")
+# def metadata():
+#    protocol = request.headers['X-Forwarded-Proto']
+#    port = request.headers['X-Nginx-Port']
+#    host = request.headers['Host'].split(":")[0]
 
-   if "X-Nodejs" in request.headers:
-      if "0.0.0.0" in host:
-         host = host.replace("0.0.0.0:8080", "localhost")
-         if "X-Nodejs-Host" in request.headers:
-            host = request.headers['X-Nodejs-Host']
+#    if "X-Nodejs" in request.headers:
+#       if "0.0.0.0" in host:
+#          host = host.replace("0.0.0.0:8080", "localhost")
+#          if "X-Nodejs-Host" in request.headers:
+#             host = request.headers['X-Nodejs-Host']
 
-   if port in host:
-      base = (protocol, host)
-      url = '%s://%s/callback/' % base
-   else:
-      base = (protocol, host, port)
-      url = '%s://%s:%s/callback/' % base
+#    if port in host:
+#       base = (protocol, host)
+#       url = '%s://%s/callback/' % base
+#    else:
+#       base = (protocol, host, port)
+#       url = '%s://%s:%s/callback/' % base
 
-   if len(request.args) > 0:
-      is_config = request.args.get("config", False)
-      if is_config:
-         config_file = open(settings.get_config("flask")['saml-settings'] + "/saml.json")
-         config = json.load(config_file)
-         config['sp']['assertionConsumerService']['url'] = url
-         config_file.close()
+#    if len(request.args) > 0:
+#       is_config = request.args.get("config", False)
+#       if is_config:
+#          config_file = open(settings.get_config("flask")['saml-settings'] + "/saml.json")
+#          config = json.load(config_file)
+#          config['sp']['assertionConsumerService']['url'] = url
+#          config_file.close()
 
-         config_file = open(settings.get_config("flask")['saml-settings'] + "/saml-advanced.json")
-         advanced_config = json.load(config_file)
-         config_file.close()
+#          config_file = open(settings.get_config("flask")['saml-settings'] + "/saml-advanced.json")
+#          advanced_config = json.load(config_file)
+#          config_file.close()
 
-         return HttpResponse(json.dumps({"config": config, "advanced": advanced_config}, indent=2))
+#          return HttpResponse(json.dumps({"config": config, "advanced": advanced_config}, indent=2))
 
-   return saml.metadata(request)
+#    return saml.metadata(request)
