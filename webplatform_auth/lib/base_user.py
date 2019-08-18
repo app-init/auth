@@ -49,7 +49,8 @@ class BaseUser:
          "sessions": sessions,
          "permissions": permissions,
          # "settings": settings,
-         "token": token
+         "token": token,
+         "uid": self.uid,
       }
 
    def set_user(self):

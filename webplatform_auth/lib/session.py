@@ -50,7 +50,7 @@ class SessionManager(object):
 
          self.db.sessions.insert_one(setup.doc)
 
-         setup.session.permissions = self.get_permissions(uid)
+         setup.session.permissions = self.get_permissions()
 
          self.__session = setup.session
          
@@ -75,6 +75,9 @@ class SessionManager(object):
    
       return check
 
+   def delete(self, session):
+      self.db.sessions.remove({"_id": session.id})
+      
    def validate(self, token):
       if token:
          uid = self.db.users.find_one({"token": token}, {"uid": 1})
