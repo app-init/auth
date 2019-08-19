@@ -1,8 +1,9 @@
 from webplatform_cli.lib.db import Manager
 
 class PermissionManager(object):
-   def __init__(self, db, session):
-      self.db = db
+   def __init__(self, session):
+      self.manager = Manager()
+      self.db = self.manager.db('webplatform') 
       self.session = session
       # self.settings = settings
 
@@ -14,6 +15,16 @@ class PermissionManager(object):
       user = PermissionsUser(self.db, self.session.uid)
       return user.list_permissions()
 
+   def get_application(self, app=None):
+      permissions = self.list_user_permissions()
+      
+      if app == None:
+         return permissions
+      else:
+         if app in permissions:
+            return permissions[app]
+         else:
+            return []
    
 class Permission(object):
    def __init__(self):
@@ -90,7 +101,7 @@ class PermissionsUser(object):
       for app in apps:
 
          if app['name'] != "system":
-            list_name = app['module_base'].split("_")
+            list_name = app['api']['name'].split("_")
             camel_case = ''.join([list_name[x].title() for x in range(1, len(list_name))])
             name = list_name[0] + camel_case
          else:

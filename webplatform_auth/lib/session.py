@@ -32,6 +32,9 @@ class SessionManager(object):
    def get_user(self):
       return self.user.get_user()
 
+   def get_uid(self):
+      return self.user.get_uid()
+
    def set_user(self):
       if self.__session:
          self.user = BaseUser(self.__session, self.db)

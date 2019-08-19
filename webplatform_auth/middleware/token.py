@@ -26,7 +26,6 @@ def process_request(session_mgr, request=None, response=None):
             session_mgr.create(uid=uid, ip=ip)
          
          user = session_mgr.get_user()
-         print(user)
 
 def find(request):
    token = None

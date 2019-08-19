@@ -6,7 +6,7 @@ class BaseUser:
       self.db = db
       self.uid = session.uid
       self.session = session
-      self.permissions_mgr = PermissionManager(db, session)
+      self.permissions_mgr = PermissionManager(session)
 
    def get_uid(self):
       return self.uid
