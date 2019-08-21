@@ -1,2 +1,0 @@
-#!/bin/bash
-webplatform-cli --base-path webplatform_auth/container/ $@

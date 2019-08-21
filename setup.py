@@ -1,21 +1,21 @@
 from setuptools import setup, find_packages
 
-setup(name = "webplatform-auth",
-   version = "1.0.3",
+setup(name = "app-init-auth",
+   version = "1.0.0",
    description = "Authentication for webplatform",
    author = "Matthew Owens",
    author_email = "mowens@redhat.com",
-   url = "https://github.com/lost-osiris/webplatform-auth",
+   url = "https://github.com/app-init/auth",
    packages = find_packages(),
    include_package_data = True,
    install_requires = [
-      "webplatform-cli",
-      "webplatform-backend",
+      "app-init-cli",
+      "app-init-backend",
       'xmlsec',
       'python3_saml',
    ],
    dependency_links = [
-      'http://github.com/lost-osiris/python3-saml/tarball/master#egg=python3_saml',
+      'http://github.com/app-init/python3-saml/tarball/master#egg=python3_saml',
    ],
    python_requires='>=3',
    license='MIT',
@@ -25,11 +25,8 @@ setup(name = "webplatform-auth",
        "License :: OSI Approved :: MIT License",
        "Operating System :: OS Independent",
    ],
-   # scripts = [
-   #    "webplatform_auth/webplatform-auth"
-   # ]
    entry_points={
-       "console_scripts": ["webplatform-auth=webplatform_auth.cli:main"]
+       "console_scripts": ["appinit-auth=appinit.cli:main"]
    },
    zip_safe = False
 )
