@@ -25,8 +25,5 @@ setup(name = "app-init-auth",
        "License :: OSI Approved :: MIT License",
        "Operating System :: OS Independent",
    ],
-   entry_points={
-       "console_scripts": ["appinit-auth=appinit.cli:main"]
-   },
    zip_safe = False
 )
