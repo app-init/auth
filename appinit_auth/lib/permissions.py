@@ -7,22 +7,22 @@ class PermissionManager(object):
       self.session = session
       # self.settings = settings
 
-   def get_application_uids(self, application, permission):
-      app = PermissionsApplication(self.db, application)
-      return app.get_uids(permission)
+   def get_route_uids(self, route, permission):
+      route = PermissionsRoute(self.db, route)
+      return route.get_uids(permission)
 
    def list_user_permissions(self):
       user = PermissionsUser(self.db, self.session.uid)
       return user.list_permissions()
 
-   def get_application(self, app=None):
+   def get_route(self, route=None):
       permissions = self.list_user_permissions()
       
-      if app == None:
+      if route == None:
          return permissions
       else:
-         if app in permissions:
-            return permissions[app]
+         if route in permissions:
+            return permissions[route]
          else:
             return []
    
@@ -30,15 +30,15 @@ class Permission(object):
    def __init__(self):
       pass
 
-class PermissionsApplication(object):
-   def __init__(self, db, application):
-      self.application = application
+class PermissionsRoute(object):
+   def __init__(self, db, route):
+      self.route = route
       self.db = db
 
    # users.permissions.get
    def get_uids(permission):
       pipeline = [
-         { "$match": {"application": self.application}},
+         { "$match": {"route": self.route}},
          { "$unwind": "$permissions" },
          { "$group":
             {
@@ -66,16 +66,16 @@ class PermissionsApplication(object):
    # permissions.applications.add
    def add(self, uid, permission):
       cursor = self.db.permissions.find_one({
-         "application": self.application,
+         "route": self.route,
          "uid": uid,
       })
 
       if cursor is None:
-         add_user.call(uid=uid, application=self.application)
+         add_user.call(uid=uid, route=self.route)
 
       self.db.permissions.update(
          {
-            "application": self.application,
+            "route": self.route,
             "uid": kwargs["uid"]
          },
          {
@@ -85,7 +85,7 @@ class PermissionsApplication(object):
          }
       )
 
-      return get_application.call(application=self.application)
+      return get_route.call(route=self.route)
 
 class PermissionsUser(object):
    def __init__(self, db, uid):
@@ -96,26 +96,26 @@ class PermissionsUser(object):
    def list_permissions(self):
       permissions = {}
 
-      apps = self.manager.get_application()
-      apps.append({"name": "system"})
-      for app in apps:
+      routes = self.manager.get_route()
+      routes.append({"name": "system"})
+      for route in routes:
 
-         if app['name'] != "system":
-            list_name = app['api']['name'].split("_")
+         if route['name'] != "system":
+            list_name = route['api']['name'].split("_")
             camel_case = ''.join([list_name[x].title() for x in range(1, len(list_name))])
             name = list_name[0] + camel_case
          else:
-            name = app['name']
+            name = route['name']
 
          permissions[name] = {}
 
-         all_permissions = self.db.permissions.find({"application": app['name']}).distinct("permissions")
+         all_permissions = self.db.permissions.find({"route": route['name']}).distinct("permissions")
 
-         user_permissions = self.db.permissions.find_one({"uid": self.uid, "application": app['name']})
+         user_permissions = self.db.permissions.find_one({"uid": self.uid, "route": route['name']})
 
          if user_permissions != None:
             all_true = False
-            if user_permissions['application'] == app['name']:
+            if user_permissions['route'] == route['name']:
                all_true = "admin" in user_permissions['permissions']
 
             for p in user_permissions['permissions']:

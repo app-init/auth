@@ -22,7 +22,7 @@ class SessionManager(object):
       if manager:
          self.db = manager.db("appinit")
          self.settings = manager.settings
-         self.apps = self.settings.list_applications()
+         self.routes = self.settings.list_routes()
          self.__session = None
          self.user = None
 
@@ -99,7 +99,8 @@ class SessionManager(object):
 
          output = {}
          for i in cursor:
-            output[i['application']] = i['permissions']
+            # print(i)
+            output[i['route']] = i['permissions']
 
          return output
       
@@ -113,10 +114,10 @@ class SessionManager(object):
             "uid": uid
          }
       ]
-      for app in self.apps:
+      for route in self.routes:
          d = {
             "permissions": [],
-            "application": app['name'],
+            "route": route['name'],
             "uid": uid
          }
          documents.append(d)
