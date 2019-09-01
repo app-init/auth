@@ -222,7 +222,11 @@ class Auth(object):
             if "RelayState" in request.form:
                return_to = request.form['RelayState']
 
-            response = redirect(return_to, code=307)
+            if host in return_to:
+               response = redirect(return_to)
+            else:
+               response = redirect(return_to, code=307)
+
             response.set_cookie("login", uid, max_age=86400)
             
             return response

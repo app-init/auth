@@ -2,7 +2,7 @@ from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 import binascii, os
 
-from webplatform_auth.lib.base_user import BaseUser
+from appinit_auth.lib.base_user import BaseUser
 
 class SessionManager(object):
    __instance = None

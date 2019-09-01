@@ -15,7 +15,7 @@ if os.path.isdir(container_path):
    
    settings_path = container_path
 else:
-   settings_path = os.path.abspath(os.path.join(controller_path, '../container/'))
+   settings_path = None 
 
 if base_path not in sys.path:
    sys.path.append(base_path)
@@ -32,7 +32,7 @@ from appinit_auth.lib import SessionManager
 from appinit.lib.config import Settings
 from appinit.lib.db import Manager
 
-from appinit.lib.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
+from appinit_backend.lib.responses import HttpResponse, HttpResponseBadRequest, HttpResponseInternalServerError
 
 manager = Manager()
 settings = Settings(path=settings_path, verify=False)

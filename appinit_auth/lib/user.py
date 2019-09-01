@@ -1,4 +1,4 @@
-from webplatform_auth.lib.base_user import BaseUser
+from appinit_auth.lib.base_user import BaseUser
 
 class User(BaseUser):
    def __init__(self, uid):
