@@ -12,11 +12,11 @@ setup(name = "app-init-auth",
       "app-init-cli",
       "app-init-backend",
       'xmlsec',
-      'python3_saml',
+      'python3-saml @ https://github.com/app-init/python3-saml/tarball/master#egg=python3_saml-1.2.2'
    ],
-   dependency_links = [
-      'http://github.com/app-init/python3-saml/tarball/master#egg=python3_saml',
-   ],
+   # dependency_links = [
+   #    'http://github.com/app-init/python3-saml/tarball/master#egg=python3_saml-1.2.2',
+   # ],
    python_requires='>=3',
    license='MIT',
    long_description = """TODO""",
