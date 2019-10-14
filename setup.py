@@ -12,7 +12,8 @@ setup(name = "app-init-auth",
       "app-init-cli",
       "app-init-backend",
       'xmlsec',
-      'python3-saml @ https://github.com/app-init/python3-saml/tarball/master#egg=python3_saml-1.2.2'
+      'python3-saml @ https://github.com/app-init/python3-saml/tarball/master#egg=python3_saml-1.2.2',
+      'ldap3'
    ],
    # dependency_links = [
    #    'http://github.com/app-init/python3-saml/tarball/master#egg=python3_saml-1.2.2',

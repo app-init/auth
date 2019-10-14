@@ -54,8 +54,7 @@ class SessionManager(object):
          self.db.sessions.insert_one(setup.doc)
 
          setup.session.permissions = self.get_permissions()
-
-         self.__session = setup.session
+         self.set_session(setup.session)
          
          return self.get() 
 

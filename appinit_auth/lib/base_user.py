@@ -1,5 +1,6 @@
 from appinit.lib.db import Manager
 from appinit_auth.lib.permissions import PermissionManager
+from appinit_backend.lib.modules import Modules
 
 class BaseUser:
    def __init__(self, session, db):
@@ -51,6 +52,7 @@ class BaseUser:
          # "settings": settings,
          "token": token,
          "uid": self.uid,
+         "metadata": {}
       }
 
    def set_user(self):
