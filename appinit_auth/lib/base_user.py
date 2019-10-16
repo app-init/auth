@@ -2,6 +2,9 @@ from appinit.lib.db import Manager
 from appinit_auth.lib.permissions import PermissionManager
 from appinit_backend.lib.modules import Modules
 
+from datetime import datetime, timedelta
+import hashlib
+
 class BaseUser:
    def __init__(self, session, db):
       self.db = db
@@ -9,15 +12,13 @@ class BaseUser:
       self.session = session
       self.permissions_mgr = PermissionManager(session)
 
+      self.metadata = self.db.users.find_one({"uid": self.uid})
+
    def get_uid(self):
       return self.uid
 
    def get_sessions(self):
       return self.session.get_all_sessions()
-
-   def get_picture_url(self, email):
-      email = email.encode('utf-8')
-      return "https://secure.gravatar.com/avatar/" + hashlib.md5(email).hexdigest() + "?s=100&d=identicon"
 
    # def set_permissions(self, permissions):
    #    self.permissions = permissions
@@ -43,17 +44,27 @@ class BaseUser:
    def get_user(self):
       sessions = self.session.get_all_sessions()
       permissions = self.permissions_mgr.list_user_permissions()
-      # settings = get_settings.call(uid=kwargs['kerberos'], output="uid")
       token = self.session.token
+
+      lastUpdated = datetime.utcnow() - timedelta(hours=24)
+      update = True
+
+      # Only allow an update when cache hasn't updated in the last 24 hours
+      if self.metadata and lastUpdated <= self.metadata['lastUpdated']:
+         update = False
 
       return {
          "sessions": sessions,
          "permissions": permissions,
-         # "settings": settings,
          "token": token,
          "uid": self.uid,
-         "metadata": {}
+         "metadata": self.metadata,
+         "update": update
       }
 
    def set_user(self):
       pass
+
+def get_picture(email):
+   email = email.encode('utf-8')
+   return "https://secure.gravatar.com/avatar/" + hashlib.md5(email).hexdigest() + "?s=100&d=identicon"

@@ -2,7 +2,7 @@ from lib.imports.default import *
 
 def call(*args, **kwargs):
    manager = Manager()
-   db = manager.db("cache")
+   db = manager.db("appinit")
 
    if "manager" in kwargs:
       cursor = manager.get_direct_reports(kwargs['manager'])
